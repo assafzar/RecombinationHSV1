@@ -1,3 +1,6 @@
+%% EnoshColocMetaAnalysis
+%
+
 function [] = EnoshColocMetaAnalysis(expCellMeasures,expRCMeasures,names,outDname)
 
 clc;
@@ -21,8 +24,8 @@ colocUnite = cell(1,nConds);
 
 RC_area = cell(1,nConds); % minimal area of replication center
 NIntersectsPerCell = cell(1,nConds); % minimal area of replication center
-uniteAreaNucleusAreaRatio = cell(1,nConds);
 
+uniteAreaNucleusAreaRatio = cell(1,nConds);
 
 nCells = nan(1,nConds);
 nRepCentersCh0 = nan(1,nConds);
@@ -74,14 +77,14 @@ for i = 1 : nConds
         ch0Area{i} = [ch0Area{i} curExpCellMeasures{icell}.ch0Area];
         ch1Area{i} = [ch1Area{i} curExpCellMeasures{icell}.ch1Area];
         nRepCenPerCellCh0{i} = [nRepCenPerCellCh0{i} curExpCellMeasures{icell}.coloc.nCh0];
-        nRepCenPerCellCh1{i} = [nRepCenPerCellCh1{i} curExpCellMeasures{icell}.coloc.nCh1];
-        
+        nRepCenPerCellCh1{i} = [nRepCenPerCellCh1{i} curExpCellMeasures{icell}.coloc.nCh1];                        
+                
         % Replication center measures
         RC_area{i} = [RC_area{i} min(curExpCellMeasures{icell}.coloc.areaCh0,curExpCellMeasures{icell}.coloc.areaCh0)];
-        NIntersectsPerCell{i} = [NIntersectsPerCell{i} length(curExpCellMeasures{icell}.coloc.colocMin)];
+        NIntersectsPerCell{i} = [NIntersectsPerCell{i} length(curExpCellMeasures{icell}.coloc.colocMin)];               
+        
         uniteAreaNucleusAreaRatio{i} = [uniteAreaNucleusAreaRatio{i} (curExpCellMeasures{icell}.uniteArea/curExpCellMeasures{icell}.nucArea)];
-        
-        
+                
         colocMin{i} = [colocMin{i} curExpCellMeasures{icell}.coloc.colocMin];
         colocMax{i} = [colocMax{i} curExpCellMeasures{icell}.coloc.colocMax];
         colocUnite{i} = [colocUnite{i} curExpCellMeasures{icell}.coloc.colocUnite];
@@ -104,33 +107,45 @@ for i = 1 : nConds
         nRCsCh1 = curExpRCMeasures{icell}.RCs.ch1.nCh;
         for iRC0 = 1 : nRCsCh0
             matForExcel_rcs = [matForExcel_rcs;...
-                [icell,0,iRC0,curExpRCMeasures{icell}.nucArea,curExpRCMeasures{icell}.RCs.ch0.areaRC(iRC0)]];
+                [icell,...
+                0,...
+                iRC0,...
+                curExpRCMeasures{icell}.nucArea,...
+                curExpRCMeasures{icell}.RCs.ch0.areaRC(iRC0),...
+                curExpRCMeasures{icell}.RCs.ch0.dist(iRC0),...                
+                curExpRCMeasures{icell}.RCs.ch0.doIntersect(iRC0)]];
             
-            found = false;
-            for iRC = 1 : nRCs
-                if curExpRCMeasures{icell}.RCs.ch0.areaRC(iRC0) == curExpCellMeasures{icell}.coloc.areaCh0(iRC)
-                    found = true;
-                end
-                if ~found
-                    matForExcel_noIntersections = [matForExcel_noIntersections;...
-                        [icell,0,iRC0,curExpRCMeasures{icell}.nucArea,curExpRCMeasures{icell}.RCs.ch0.areaRC(iRC0)]];
-                end
-            end            
+%             found = false;
+%             for iRC = 1 : nRCs
+%                 if curExpRCMeasures{icell}.RCs.ch0.areaRC(iRC0) == curExpCellMeasures{icell}.coloc.areaCh0(iRC)
+%                     found = true;
+%                 end
+%                 if ~found
+%                     matForExcel_noIntersections = [matForExcel_noIntersections;...
+%                         [icell,0,iRC0,curExpRCMeasures{icell}.nucArea,curExpRCMeasures{icell}.RCs.ch0.areaRC(iRC0)]];
+%                 end
+%             end            
         end
         for iRC1 = 1 : nRCsCh1
             matForExcel_rcs = [matForExcel_rcs;...
-                [icell,1,iRC1,curExpRCMeasures{icell}.nucArea,curExpRCMeasures{icell}.RCs.ch1.areaRC(iRC1)]];
+                [icell,...
+                1,...
+                iRC1,...
+                curExpRCMeasures{icell}.nucArea,...
+                curExpRCMeasures{icell}.RCs.ch1.areaRC(iRC1),...
+                curExpRCMeasures{icell}.RCs.ch1.dist(iRC1),...                
+                curExpRCMeasures{icell}.RCs.ch1.doIntersect(iRC1)]];                
             
-            found = false;
-            for iRC = 1 : nRCs
-                if curExpRCMeasures{icell}.RCs.ch1.areaRC(iRC1) == curExpCellMeasures{icell}.coloc.areaCh1(iRC)
-                    found = true;
-                end
-                if ~found
-                    matForExcel_noIntersections = [matForExcel_noIntersections;...
-                        [icell,1,iRC1,curExpRCMeasures{icell}.nucArea,curExpRCMeasures{icell}.RCs.ch1.areaRC(iRC1)]];
-                end
-            end
+%             found = false;
+%             for iRC = 1 : nRCs
+%                 if curExpRCMeasures{icell}.RCs.ch1.areaRC(iRC1) == curExpCellMeasures{icell}.coloc.areaCh1(iRC)
+%                     found = true;
+%                 end
+%                 if ~found
+%                     matForExcel_noIntersections = [matForExcel_noIntersections;...
+%                         [icell,1,iRC1,curExpRCMeasures{icell}.nucArea,curExpRCMeasures{icell}.RCs.ch1.areaRC(iRC1)]];
+%                 end
+%             end
         end
         
     end    
@@ -139,9 +154,10 @@ for i = 1 : nConds
     nRepCentersPerCellCh1(i)  = nRepCentersCh1(i) / nCells(i);
     
     % Write excel file
+    close all;
     xlswrite([outDname filesep names{i} '_intersectionStats.xlsx'],matForExcel_intersections);
     xlswrite([outDname filesep names{i} '_rcStats.xlsx'],matForExcel_rcs);
-    xlswrite([outDname filesep names{i} '_noIntersectionStats.xlsx'],matForExcel_intersections);
+    %     xlswrite([outDname filesep names{i} '_noIntersectionStats.xlsx'],matForExcel_intersections);
 end
 
 %% Statistics: plot distributions

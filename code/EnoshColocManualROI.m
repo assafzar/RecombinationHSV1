@@ -1,5 +1,8 @@
-% dname = '/project/bioinformatics/Danuser_lab/shared/assaf/OrenKobilerTAU/201702/31'
-% addpath(genpath('/project/bioinformatics/Danuser_lab/shared/assaf/OrenKobilerTAU/code'));
+%% EnoshColocManualROI 
+%   select ROI for analysis - what cells to analyze based on both channels
+%   output accumulated measures for cells and for RCs
+%
+%
 function [cellMeasures,rcMeasures] = EnoshColocManualROI(dname,always)
 
 close all;
@@ -17,13 +20,7 @@ for ifov = 0 : 100 % assuming <=100 fovs per folder
     end
     
     roiDname = [dname filesep 'rois'];
-    
-    %%    
-    %     if ~isstruct(curFovRois)
-    %         warning(['skipping ' dname filesep num2str(ifov)]);
-    %         continue;
-    %     end
-    
+       
     fprintf(sprintf('\n\nEnoshColocManualROI: %s\n',prefix));
     
     load([roiDname filesep prefix '_rois.mat']); % 'curFovRois'
@@ -48,7 +45,7 @@ for ifov = 0 : 100 % assuming <=100 fovs per folder
     
     %% TODO: move to after manual ROI annotation! (and exclude output)
     curMeasures = calcCellMeasures(curFovRois,roiIntersect);
-    curRCMeasures = calcRCMeasures(curFovRois,roiIntersect,curMeasures);
+    curRCMeasures = calcRCMeasures(curFovRois,roiIntersect);
     fprintf('EnoshColocManualROI: assign current measures\n');
     cellMeasures = [cellMeasures,curMeasures]; 
     rcMeasures = [rcMeasures,curRCMeasures];
@@ -58,7 +55,7 @@ save([dname filesep 'stats.mat'],'cellMeasures','rcMeasures');
 end
 
 %%
-function [curRCMeasures]  = calcRCMeasures(curFovRois,roiIntersect,curMeasures)
+function [curRCMeasures]  = calcRCMeasures(curFovRois,roiIntersect)
 curRCMeasures = {};
 
 if sum(roiIntersect(:) == 0)
@@ -83,13 +80,11 @@ for icell = 1 : curFovRois.n
     
     curRCMeasures{ncells}.nucArea = sum(nucArea(:));
     curRCMeasures{ncells}.ch0TotalAreaNorm = sum(curCellCh0(:) > 0) ./ nucArea;
-    curRCMeasures{ncells}.ch1TotalAreaNorm = sum(curCellCh1(:) > 0) ./ nucArea;       
-    
-%     curRCMeasures{ncells}.intersectionCellID = findIntersectionCellID(curMeasures,curRCMeasures{ncells}.nucArea);
+    curRCMeasures{ncells}.ch1TotalAreaNorm = sum(curCellCh1(:) > 0) ./ nucArea;           
     
     % Measures per replication center
-    curRCMeasures{ncells}.RCs.ch0 = calcReplicationCentersArea(curCellCh0);  
-    curRCMeasures{ncells}.RCs.ch1 = calcReplicationCentersArea(curCellCh1);  
+    curRCMeasures{ncells}.RCs.ch0 = calcRcMeasures(curCellCh0,curCellCh1);  
+    curRCMeasures{ncells}.RCs.ch1 = calcRcMeasures(curCellCh1,curCellCh0);  
 end
 
 end
@@ -106,19 +101,28 @@ end
 % end
 
 %%
-function curMeasures = calcReplicationCentersArea(curCellCh)
+function curMeasures = calcRcMeasures(curCellCh,curCellOtherCh)
 
 [labelsRC,nRC] = bwlabel(curCellCh,8);
 
 curMeasures.nCh = nRC;
 
 curMeasures.areaRC = [];
+curMeasures.dist = []; % Distance of each RC in one channel to RC in the other channel (0 if interacting)
+curMeasures.doIntersect = [];
 
 for i = 1 : nRC
     curRepCh = labelsRC == i;
     area = (curRepCh > 0);                
-    curMeasures.areaRC = [curMeasures.areaRC sum(area(:))];            
+    curMeasures.areaRC = [curMeasures.areaRC sum(area(:))];    
+       
+    distMap = bwdist(curRepCh);
+    curMeasures.dist = [curMeasures.dist min(distMap(curCellOtherCh))];
+    curMeasures.doIntersect = [curMeasures.doIntersect curMeasures.dist(end) == 0];
+    assert(length(curMeasures.dist) == length(curMeasures.doIntersect));
 end
+
+
 
 end
 
@@ -158,7 +162,7 @@ for icell = 1 : curFovRois.n
 end
 end
 
-%%
+%% RC-intersection measures within each cell 
 function curMeasures = calcReplicationCentersColocalization(curCellCh0,curCellCh1)
 
 [labelsCh0,nCh0] = bwlabel(curCellCh0,8);
@@ -173,6 +177,7 @@ curMeasures.areaCh1 = [];
 curMeasures.colocMin = []; % minimum of two replication centers
 curMeasures.colocMax = [];
 curMeasures.colocUnite = [];
+
 for i0 = 1 : nCh0
     curRepCh0 = labelsCh0 == i0;
     for i1 = 1 : nCh1
@@ -192,7 +197,7 @@ for i0 = 1 : nCh0
             
             curMeasures.colocMin = [curMeasures.colocMin minArea];
             curMeasures.colocMax = [curMeasures.colocMax maxArea];
-            curMeasures.colocUnite = [curMeasures.colocUnite uniteArea];
+            curMeasures.colocUnite = [curMeasures.colocUnite uniteArea];            
         end
     end
 end

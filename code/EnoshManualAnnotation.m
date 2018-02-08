@@ -11,6 +11,7 @@ maxVal = 255;
 roiFnameMat = [roiFnamePrefix '.mat'];
 roiFnameJpg = [roiFnamePrefix '.jpg'];
 
+
 if exist(roiFnameMat,'file') && ~always
     load(roiFnameMat); % ROI
     return;
