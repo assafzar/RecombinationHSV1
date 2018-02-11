@@ -1,4 +1,4 @@
-%% EnoshColocManualROI 
+%% EnoshColocManualROI
 %   select ROI for analysis - what cells to analyze based on both channels
 %   output accumulated measures for cells and for RCs
 %
@@ -20,11 +20,11 @@ for ifov = 0 : 100 % assuming <=100 fovs per folder
     end
     
     roiDname = [dname filesep 'rois'];
-       
+    
     fprintf(sprintf('\n\nEnoshColocManualROI: %s\n',prefix));
     
     load([roiDname filesep prefix '_rois.mat']); % 'curFovRois'
-
+    
     if curFovRois.n == 0
         warning('%s: n ROIs = 0',[roiDname filesep prefix '_rois.mat']);
         continue;
@@ -35,7 +35,7 @@ for ifov = 0 : 100 % assuming <=100 fovs per folder
     roiVisDname = [dname filesep 'roisVis'];
     load([roiVisDname filesep num2str(ifov) '_annotation_ch0.mat']); % 'Iann_ch0'
     roi_ch0 = EnoshManualAnnotation(Iann_ch0,[roiVisDname filesep num2str(ifov) '_annotatedROI_ch0'],always);
-        
+    
     load([roiVisDname filesep num2str(ifov) '_annotation_ch1.mat']); % 'Iann_ch1'
     roi_ch1 = EnoshManualAnnotation(Iann_ch1,[roiVisDname filesep num2str(ifov) '_annotatedROI_ch1'],always);
     
@@ -47,7 +47,7 @@ for ifov = 0 : 100 % assuming <=100 fovs per folder
     curMeasures = calcCellMeasures(curFovRois,roiIntersect);
     curRCMeasures = calcRCMeasures(curFovRois,roiIntersect);
     fprintf('EnoshColocManualROI: assign current measures\n');
-    cellMeasures = [cellMeasures,curMeasures]; 
+    cellMeasures = [cellMeasures,curMeasures];
     rcMeasures = [rcMeasures,curRCMeasures];
     fprintf('EnoshColocManualROI: updated cell measures\n');
 end
@@ -59,7 +59,7 @@ function [curRCMeasures]  = calcRCMeasures(curFovRois,roiIntersect)
 curRCMeasures = {};
 
 if sum(roiIntersect(:) == 0)
-    fprintf('calcCellMeasures: ROI intersection is empty\n'); 
+    fprintf('calcCellMeasures: ROI intersection is empty\n');
 end
 
 ncells = 0;
@@ -67,7 +67,7 @@ for icell = 1 : curFovRois.n
     curCellCh0 = curFovRois.debugCh0{icell} > 0 & roiIntersect;
     curCellCh1 = curFovRois.debugCh1{icell} > 0 & roiIntersect;
     curCellNuc = curFovRois.debugNuc{icell} > 0 & roiIntersect;
-        
+    
     if sum(curCellCh0(:)) == 0 && sum(curCellCh1(:)) == 0
         continue;
     end
@@ -80,11 +80,11 @@ for icell = 1 : curFovRois.n
     
     curRCMeasures{ncells}.nucArea = sum(nucArea(:));
     curRCMeasures{ncells}.ch0TotalAreaNorm = sum(curCellCh0(:) > 0) ./ nucArea;
-    curRCMeasures{ncells}.ch1TotalAreaNorm = sum(curCellCh1(:) > 0) ./ nucArea;           
+    curRCMeasures{ncells}.ch1TotalAreaNorm = sum(curCellCh1(:) > 0) ./ nucArea;
     
     % Measures per replication center
-    curRCMeasures{ncells}.RCs.ch0 = calcRcMeasures(curCellCh0,curCellCh1);  
-    curRCMeasures{ncells}.RCs.ch1 = calcRcMeasures(curCellCh1,curCellCh0);  
+    curRCMeasures{ncells}.RCs.ch0 = calcRcMeasures(curCellCh0,curCellCh1);
+    curRCMeasures{ncells}.RCs.ch1 = calcRcMeasures(curCellCh1,curCellCh0);
 end
 
 end
@@ -113,17 +113,19 @@ curMeasures.doIntersect = [];
 
 for i = 1 : nRC
     curRepCh = labelsRC == i;
-    area = (curRepCh > 0);                
-    curMeasures.areaRC = [curMeasures.areaRC sum(area(:))];    
-       
-    distMap = bwdist(curRepCh);
-    curMeasures.dist = [curMeasures.dist min(distMap(curCellOtherCh))];
-    curMeasures.doIntersect = [curMeasures.doIntersect curMeasures.dist(end) == 0];
-    assert(length(curMeasures.dist) == length(curMeasures.doIntersect));
+    area = (curRepCh > 0);
+    curMeasures.areaRC = [curMeasures.areaRC sum(area(:))];
+    
+    if sum(curCellOtherCh(:)) == 0
+        curMeasures.dist = inf;
+        curMeasures.doIntersect = false;
+    else
+        distMap = bwdist(curRepCh);
+        curMeasures.dist = [curMeasures.dist min(distMap(curCellOtherCh))];
+        curMeasures.doIntersect = [curMeasures.doIntersect curMeasures.dist(end) == 0];
+        assert(length(curMeasures.dist) == length(curMeasures.doIntersect));
+    end
 end
-
-
-
 end
 
 %%
@@ -133,14 +135,14 @@ curMeasures = {};
 
 
 if sum(roiIntersect(:) == 0)
-    fprintf('calcCellMeasures: ROI intersection is empty\n'); 
+    fprintf('calcCellMeasures: ROI intersection is empty\n');
 end
 
 ncells = 0;
 for icell = 1 : curFovRois.n
     curCellCh0 = curFovRois.debugCh0{icell} > 0  & roiIntersect;
     curCellCh1 = curFovRois.debugCh1{icell} > 0 & roiIntersect;
-    curCellNuc = curFovRois.debugNuc{icell} > 0 & roiIntersect;        
+    curCellNuc = curFovRois.debugNuc{icell} > 0 & roiIntersect;
     
     if sum(curCellCh0(:)) == 0 && sum(curCellCh1(:)) == 0
         continue;
@@ -153,16 +155,16 @@ for icell = 1 : curFovRois.n
     uniteArea = curCellCh0 | curCellCh1;
     curMeasures{ncells}.nucArea = sum(nucArea(:));
     curMeasures{ncells}.intersectArea = sum(intersectArea(:));
-    curMeasures{ncells}.uniteArea = sum(uniteArea(:));    
+    curMeasures{ncells}.uniteArea = sum(uniteArea(:));
     curMeasures{ncells}.ch0Area = sum(curCellCh0(:) > 0) ./ nucArea; % normalized
     curMeasures{ncells}.ch1Area = sum(curCellCh1(:) > 0) ./ nucArea;
     
     % Measures per replication center
-    curMeasures{ncells}.coloc = calcReplicationCentersColocalization(curCellCh0,curCellCh1);    
+    curMeasures{ncells}.coloc = calcReplicationCentersColocalization(curCellCh0,curCellCh1);
 end
 end
 
-%% RC-intersection measures within each cell 
+%% RC-intersection measures within each cell
 function curMeasures = calcReplicationCentersColocalization(curCellCh0,curCellCh1)
 
 [labelsCh0,nCh0] = bwlabel(curCellCh0,8);
@@ -185,7 +187,7 @@ for i0 = 1 : nCh0
         area0 = (curRepCh0 > 0);
         area1 = (curRepCh1 > 0);
         intersect = area0 & area1;
-        intersectArea = sum(intersect(:)); 
+        intersectArea = sum(intersect(:));
         if intersectArea > 0
             unite = area0 | area1;
             minArea = intersectArea / min(sum(area0(:)),sum(area1(:)));
@@ -197,7 +199,7 @@ for i0 = 1 : nCh0
             
             curMeasures.colocMin = [curMeasures.colocMin minArea];
             curMeasures.colocMax = [curMeasures.colocMax maxArea];
-            curMeasures.colocUnite = [curMeasures.colocUnite uniteArea];            
+            curMeasures.colocUnite = [curMeasures.colocUnite uniteArea];
         end
     end
 end
