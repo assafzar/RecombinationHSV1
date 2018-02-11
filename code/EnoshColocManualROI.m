@@ -117,8 +117,8 @@ for i = 1 : nRC
     curMeasures.areaRC = [curMeasures.areaRC sum(area(:))];
     
     if sum(curCellOtherCh(:)) == 0
-        curMeasures.dist = inf;
-        curMeasures.doIntersect = false;
+        curMeasures.dist = [curMeasures.dist inf];
+        curMeasures.doIntersect = [curMeasures.doIntersect false];
     else
         distMap = bwdist(curRepCh);
         curMeasures.dist = [curMeasures.dist min(distMap(curCellOtherCh))];
