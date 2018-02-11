@@ -26,13 +26,14 @@ for ifov = 0 : 100 % assuming <=100 fovs per folder
     segParams.chW = 3;%5;
     segParams.chPixTH = 25;%40;
     segParams.chGaussianSigma = 2; % smoothing gaussian kernal size
-    
+           
+    %% Enosh's parameters' setting Feb. 2018
     % default = 4
-    segParams.nStd = 4;%4;%3;% 4; % # stds above background intensity levels
+    segParams.nStd = 2.5;%4;%3;% 4; % # stds above background intensity levels
     % default = 2
     segParams.nStdInNuc = 2;%
     % default = 3
-    segParams.nMultTH = 3;%5;%4;%2;%3; % 2 # population for Otsu
+    segParams.nMultTH = 2;%5;%4;%2;%3; % 2 # population for Otsu
     % default = 1
     segParams.nMultTHForeground = 1;%2; %1 % # of populations to consider as forground 
     
